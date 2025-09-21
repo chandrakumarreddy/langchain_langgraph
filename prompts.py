@@ -1,6 +1,7 @@
-""""LLM"""
+"""prompts"""
 
 import os
+from aiohttp.http_exceptions import HttpBadRequest
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -15,11 +16,13 @@ client = OpenAI(
 try:
     response = client.chat.completions.create(
         model="x-ai/grok-4-fast:free",
-        temperature=0,
         messages=[
-            {"role": "user", "content": "write 3 line poem on wife"}
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Capital of america"},
         ],
     )
     print(response.choices[0].message.content)
+except HttpBadRequest as e:
+    print(e)
 except Exception as e:
     print(e)
