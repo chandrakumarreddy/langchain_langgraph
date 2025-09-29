@@ -1,0 +1,49 @@
+"""With structured dict"""
+
+from typing import Annotated, TypedDict, Literal, List
+import os
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+
+load_dotenv()
+
+
+client = ChatOpenAI(
+    openai_api_base="https://openrouter.ai/api/v1",
+    openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+    model_name="x-ai/grok-4-fast:free",
+)
+
+
+class Review(TypedDict):
+    """Person"""
+    key_theme: Annotated[List[str], "Key themes discussed in the review"]
+    summary: Annotated[str, "Summary of the review"]
+    sentiment: Annotated[Literal['pos', 'neg'],
+                         "return sentiment of the review either postive or negative"]
+    pros: Annotated[List[str], "Write down all the Pros inside a list"]
+    cons: Annotated[List[str], "Write down all the Cons inside a list"]
+    name: Annotated[str, "Name of the person who wrote the review"]
+
+
+structured_client = client.with_structured_output(Review)
+
+try:
+    response = structured_client.invoke("""recently upgraded to the Samsung Galaxy S24 Ultra, and I must say, it’s an absolute powerhouse! The Snapdragon 8 Gen 3 processor makes everything lightning fast—whether I’m gaming, multitasking, or editing photos. The 5000mAh battery easily lasts a full day even with heavy use, and the 45W fast charging is a lifesaver.
+
+The S-Pen integration is a great touch for note-taking and quick sketches, though I don't use it often. What really blew me away is the 200MP camera—the night mode is stunning, capturing crisp, vibrant images even in low light. Zooming up to 100x actually works well for distant objects, but anything beyond 30x loses quality.
+
+However, the weight and size make it a bit uncomfortable for one-handed use. Also, Samsung’s One UI still comes with bloatware—why do I need five different Samsung apps for things Google already provides? The $1,300 price tag is also a hard pill to swallow.
+
+Pros:
+Insanely powerful processor (great for gaming and productivity)
+Stunning 200MP camera with incredible zoom capabilities
+Long battery life with fast charging
+S-Pen support is unique and useful
+
+Review by Nitish Singh
+        """)
+    print(response)
+except Exception as e:
+    print(e)
