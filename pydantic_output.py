@@ -1,8 +1,9 @@
 """With structured dict"""
 
-from typing import Annotated, Optional, TypedDict, Literal, List
 import os
+from typing import List, Optional, Literal
 
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
@@ -16,17 +17,19 @@ client = ChatOpenAI(
 )
 
 
-class Review(TypedDict):
+class Review(BaseModel):
     """Person"""
-    key_theme: Annotated[List[str], "Key themes discussed in the review"]
-    summary: Annotated[str, "Summary of the review"]
-    sentiment: Annotated[Literal['pos', 'neg'],
-                         "return sentiment of the review either postive or negative"]
-    pros: Annotated[Optional[List[str]],
-                    "Write down all the Pros inside a list"]
-    cons: Annotated[Optional[List[str]],
-                    "Write down all the Cons inside a list"]
-    name: Annotated[str, "Name of the person who wrote the review"]
+    key_theme: List[str] = Field(
+        description="Key themes or features discussed in the review (e.g., 'Camera', 'Battery Life').")
+    summary: str = Field(description="A concise summary of the entire review.")
+    sentiment: Literal['pos', 'neg'] = Field(
+        description="The overall sentiment of the review, either 'pos' for positive or 'neg' for negative.")
+    pros: Optional[List[str]] = Field(
+        description="Write down all the Pros inside a list.Only extract points that are explicitly listed under a 'Cons:' heading in the text. If no such heading and list exist, this must be null.", default="None")
+    cons: Optional[List[str]] = Field(
+        description="Write down all the Cons inside a list.Only extract points that are explicitly listed under a 'Cons:' heading in the text. If no such heading and list exist, this must be null.", default="None")
+    name: str = Field(
+        description="Name of the person who wrote the review if mentioned", default="None")
 
 
 structured_client = client.with_structured_output(Review)
