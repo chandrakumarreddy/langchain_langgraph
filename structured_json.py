@@ -29,8 +29,10 @@ class Place(BaseModel):
 
 parser = JsonOutputParser(pydantic_object=Place)
 
-prompt_template = PromptTemplate(template="give me the details of the place {place}\n{format_instructions}", input_variables=[
-                                 "place"], partial_variables={"format_instructions": parser.get_format_instructions()})
+prompt_template = PromptTemplate(
+    template="give me the details of the place {place}\n{format_instructions}",
+    input_variables=["place"],
+    partial_variables={"format_instructions": parser.get_format_instructions()})
 
 chain = prompt_template | client | parser
 

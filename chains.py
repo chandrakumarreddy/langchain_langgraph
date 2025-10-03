@@ -3,10 +3,10 @@
 import os
 from typing import Literal
 from dotenv import load_dotenv
-from langchain_core.runnables import RunnableBranch, RunnableLambda
-from langchain_openai import ChatOpenAI
+from langchain_core.runnables import RunnableBranch, RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
+from langchain_openai import ChatOpenAI
 from langchain.schema.runnable import RunnableParallel
 from pydantic import BaseModel, Field
 
@@ -44,13 +44,16 @@ except Exception as e:
 
 
 parallel_1 = PromptTemplate(
-    template="""generate simple and short notes from the text \n {text}""", input_variables=["text"])
+    template="""generate simple and short notes from the text \n {text}""",
+    input_variables=["text"])
 
 parallel_2 = PromptTemplate(
-    template="""Generate 4 question and answers from the provided text \n {text}""", input_variables=["text"])
+    template="""Generate 4 question and answers from the provided text \n {text}""",
+    input_variables=["text"])
 
 parallel_3 = PromptTemplate(
-    template="""Merge provided notes and qn into single document \n notes->{notes} and quiz->{quiz}""", input_variables=["text"])
+    template="""Merge provided notes and qn into single document \n notes->{notes} and quiz->{quiz}""",
+    input_variables=["notes", "quiz"])
 
 parallel_chain_output = RunnableParallel({
     "notes": parallel_1 | client | parser,
@@ -100,7 +103,8 @@ class Sentiment(BaseModel):
 sentiment_parser = PydanticOutputParser(pydantic_object=Sentiment)
 
 sentiment_template = PromptTemplate(
-    template="""Classify the sentiment of the following feedback text into postive or negative\n {feedback}\n {format_instructions}""",
+    template="""Classify the sentiment of the following feedback text \
+        into postive or negative\n {feedback}\n {format_instructions}""",
     input_variables=["feedback"],
     partial_variables={"format_instructions": sentiment_parser.get_format_instructions()})
 
@@ -117,14 +121,14 @@ prompt3 = PromptTemplate(
 sentiment_runnable = RunnableBranch(
     (lambda x: x.sentiment == 'Positive', prompt2 | client | parser),
     (lambda x: x.sentiment == 'Negative', prompt3 | client | parser),
-    RunnableLambda(lambda x: "Sentiment not found")
+    RunnablePassthrough()
 )
 
 sentiment_chain = sentiment_template | client | sentiment_parser | sentiment_runnable
 
 try:
     print("Generating sentiment...")
-    for s in sentiment_chain.stream({"feedback": "The product is great!"}):
+    for s in sentiment_chain.stream({"feedback": "The product is not working properly!"}):
         print(s, end='')
 except Exception as e:
     print(e)
