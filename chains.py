@@ -16,7 +16,7 @@ load_dotenv()
 client = ChatOpenAI(
     openai_api_base="https://openrouter.ai/api/v1",
     openai_api_key=os.getenv("OPENROUTER_API_KEY"),
-    model_name="x-ai/grok-4-fast:free",
+    model_name="openai/gpt-oss-20b:free",
 )
 
 
